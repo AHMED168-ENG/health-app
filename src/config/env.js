@@ -5,6 +5,7 @@ import { validate as validateCron } from 'node-cron';
 const schema = Joi.object({
   NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
   PORT: Joi.number().port().default(3000),
+  LOG_LEVEL: Joi.string().valid('error', 'warn', 'info').default('info'),
 
   HEARTBEAT_API_KEY: Joi.string().min(8).required(),
 
@@ -42,6 +43,7 @@ function parseRecipients(raw) {
 
 const env = {
   port: value.PORT,
+  logLevel: value.LOG_LEVEL,
 
   checkCron: value.CHECK_CRON,
   downAfterMinutes: value.DOWN_AFTER_MINUTES,

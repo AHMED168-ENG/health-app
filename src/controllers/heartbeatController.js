@@ -1,5 +1,6 @@
 import { heartbeatTracker } from '../services/heartbeatService.js';
 import { sendAlert } from '../services/alertService.js';
+import { logger } from '../config/logger.js';
 
 const SERVICE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$/;
 
@@ -12,13 +13,14 @@ export const heartbeatController = {
     }
 
     const result = heartbeatTracker.record(serviceId, Date.now());
+    logger.info(`Heartbeat from ${serviceId}`, { event: result.event });
 
     if (result.event === 'recovered') {
       // A failed recovery email must not fail the heartbeat itself.
       try {
         await sendAlert({ type: 'recovered', serviceId, ...result });
       } catch (error) {
-        console.error('Failed to send recovery email:', error.message);
+        logger.error(`Recovery alert for ${serviceId} failed`, { error: error.message });
       }
     }
 

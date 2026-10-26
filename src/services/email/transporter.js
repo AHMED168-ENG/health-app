@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import env from '../../config/env.js';
+import { logger } from '../../config/logger.js';
 
 const transporter = nodemailer.createTransport({
   host: env.smtp.host,
@@ -10,12 +11,17 @@ const transporter = nodemailer.createTransport({
 
 /** Sends `{ subject, text, html }` to all configured recipients. */
 export async function sendEmail(message) {
-  const info = await transporter.sendMail({
-    from: env.smtp.fromEmail,
-    to: env.alertRecipients.join(','),
-    replyTo: env.alertReplyTo,
-    ...message,
-  });
-  console.log(`Email sent: "${message.subject}" -> ${info.messageId}`);
-  return info;
+  try {
+    const info = await transporter.sendMail({
+      from: env.smtp.fromEmail,
+      to: env.alertRecipients.join(','),
+      replyTo: env.alertReplyTo,
+      ...message,
+    });
+    logger.info('Email sent', { subject: message.subject, messageId: info.messageId });
+    return info;
+  } catch (error) {
+    logger.error('Email send FAILED', { subject: message.subject, error: error.message });
+    throw error;
+  }
 }
