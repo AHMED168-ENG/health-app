@@ -25,7 +25,6 @@ export function downtimeEmail({ serviceId, lastHeartbeatAt, detectedAt, threshol
       ['Outage detected at', formatUtcTimestamp(detectedAt)],
       ['Heartbeat threshold', `${thresholdMinutes} min`],
     ],
-    note: 'Check the producing backend and its scheduled job as soon as possible.',
     footer: 'Generated automatically by the Heartbeat Alert Service.',
   });
 }
