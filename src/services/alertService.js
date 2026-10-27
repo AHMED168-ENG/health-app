@@ -8,15 +8,26 @@ import env from '../config/env.js';
 
 /** Sends the matching email for a down / down_reminder / recovered event. */
 export async function sendAlert(alert) {
+  const shared = {
+    serviceId: alert.serviceId,
+    thresholdMinutes: env.downAfterMinutes,
+    timeZone: env.alertTimeZone,
+  };
+
   let message;
 
   if (alert.type === 'down') {
-    message = downtimeEmail({ ...alert, thresholdMinutes: env.downAfterMinutes });
+    message = downtimeEmail({ ...shared, lastHeartbeatAt: alert.lastHeartbeatAt, detectedAt: alert.detectedAt });
   } else if (alert.type === 'down_reminder') {
-    message = downtimeReminderEmail({ ...alert, thresholdMinutes: env.downAfterMinutes });
+    message = downtimeReminderEmail({
+      ...shared,
+      lastHeartbeatAt: alert.lastHeartbeatAt,
+      detectedAt: alert.detectedAt,
+      now: alert.now,
+    });
   } else if (alert.type === 'recovered') {
     message = recoveryEmail({
-      serviceId: alert.serviceId,
+      ...shared,
       downSince: alert.downSince,
       recoveredAt: alert.lastHeartbeatAt,
     });

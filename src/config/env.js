@@ -20,6 +20,14 @@ const schema = Joi.object({
 
   ALERT_EMAIL_RECIPIENTS: Joi.string().required(),
   ALERT_EMAIL_REPLY_TO: Joi.string().email().allow('').default(''),
+  ALERT_TIMEZONE: Joi.string().custom((value) => {
+    try {
+      new Intl.DateTimeFormat('en-GB', { timeZone: value });
+    } catch {
+      throw new Error('ALERT_TIMEZONE is not a valid IANA timezone (e.g. Asia/Riyadh)');
+    }
+    return value;
+  }).default('Asia/Riyadh'),
 
   SMTP_HOST: Joi.string().required(),
   SMTP_PORT: Joi.number().port().default(587),
@@ -51,6 +59,7 @@ const env = {
 
   alertRecipients: parseRecipients(value.ALERT_EMAIL_RECIPIENTS),
   alertReplyTo: value.ALERT_EMAIL_REPLY_TO || undefined,
+  alertTimeZone: value.ALERT_TIMEZONE,
 
   smtp: {
     host: value.SMTP_HOST,

@@ -15,16 +15,30 @@ function escapeHtml(value) {
 /**
  * Shared email chrome: header band, title, body slots and footer.
  * Inline styles only — email clients strip external CSS.
+ *
+ * `rows`    = the few things a reader needs at a glance (big, bold).
+ * `details` = the raw numbers, small and grey at the bottom.
  */
-export default function baseLayout({ status, statusLabel, title, intro, rows = [], note = '', footer }) {
+export default function baseLayout({
+  status,
+  statusLabel,
+  subject,
+  title,
+  intro,
+  rows = [],
+  details = [],
+  caption = '',
+  note = '',
+  footer,
+}) {
   const accent = STATUS_COLORS[status] ?? '#2563eb';
 
   const rowsHtml = rows
     .map(
       ([label, value]) => `
       <tr>
-        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#6b7280;width:42%;">${escapeHtml(label)}</td>
-        <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#111827;font-weight:600;">${escapeHtml(value)}</td>
+        <td style="padding:12px 16px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#6b7280;width:42%;">${escapeHtml(label)}</td>
+        <td style="padding:12px 16px;border-bottom:1px solid #e5e7eb;font-size:15px;color:#111827;font-weight:600;">${escapeHtml(value)}</td>
       </tr>`,
     )
     .join('');
@@ -33,16 +47,42 @@ export default function baseLayout({ status, statusLabel, title, intro, rows = [
     ? `<div style="margin-top:20px;padding:12px 16px;background:#fef2f2;border-left:4px solid ${accent};border-radius:0 6px 6px 0;font-size:13px;color:#7f1d1d;">${escapeHtml(note)}</div>`
     : '';
 
+  const detailsHtml = details.length
+    ? `
+              <div style="margin-top:28px;padding-top:16px;border-top:1px solid #e5e7eb;">
+                <p style="margin:0 0 4px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;">Technical details</p>
+                ${caption ? `<p style="margin:0 0 10px;font-size:11px;color:#9ca3af;">${escapeHtml(caption)}</p>` : ''}
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                  ${details
+                    .map(
+                      ([label, value]) => `
+                  <tr>
+                    <td style="padding:3px 0;font-size:12px;color:#9ca3af;width:52%;">${escapeHtml(label)}</td>
+                    <td style="padding:3px 0;font-size:12px;color:#6b7280;">${escapeHtml(value)}</td>
+                  </tr>`,
+                    )
+                    .join('')}
+                </table>
+              </div>`
+    : '';
+
   return {
-    subject: title,
+    subject: subject ?? title,
     text: [
       title,
       intro,
+      '',
       ...rows.map(([label, value]) => `${label}: ${value}`),
-      note,
+      note ? '' : null,
+      note || null,
+      details.length ? '' : null,
+      details.length ? 'Technical details' : null,
+      caption || null,
+      ...details.map(([label, value]) => `${label}: ${value}`),
+      '',
       footer,
     ]
-      .filter(Boolean)
+      .filter((line) => line != null)
       .join('\n'),
     html: `<!DOCTYPE html>
 <html lang="en">
@@ -69,7 +109,7 @@ export default function baseLayout({ status, statusLabel, title, intro, rows = [
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;border-collapse:collapse;">
                 ${rowsHtml}
               </table>
-              ${noteHtml}
+              ${noteHtml}${detailsHtml}
             </td>
           </tr>
           <tr>

@@ -31,6 +31,7 @@ Copy `.env.example` to `.env` and fill it in. SMTP credentials come from the
 | `DOWN_AFTER_MINUTES`     | Silence tolerance before declaring a service down |
 | `REMINDER_EVERY_MINUTES` | Repeat downtime alerts every N minutes (0 = once) |
 | `ALERT_EMAIL_RECIPIENTS` | Comma-separated recipient list                    |
+| `ALERT_TIMEZONE`         | IANA zone for the times shown in alert emails     |
 | `SMTP_*`                 | Nodemailer transport settings                     |
 
 ## Run
