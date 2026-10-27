@@ -22,13 +22,12 @@ export async function sendAlert(alert) {
     message = downtimeReminderEmail({
       ...shared,
       lastHeartbeatAt: alert.lastHeartbeatAt,
-      detectedAt: alert.detectedAt,
       now: alert.now,
     });
   } else if (alert.type === 'recovered') {
     message = recoveryEmail({
       ...shared,
-      downSince: alert.downSince,
+      lastSeenAt: alert.lastSeenAt,
       recoveredAt: alert.lastHeartbeatAt,
     });
   } else {

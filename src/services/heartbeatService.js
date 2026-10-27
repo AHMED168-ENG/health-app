@@ -21,12 +21,13 @@ export class HeartbeatTracker {
     }
 
     const wasDown = record.state === 'down';
+    const lastSeenAt = record.lastHeartbeatAt;
     record.lastHeartbeatAt = now;
 
     if (wasDown) {
       record.state = 'healthy';
       record.lastAlertAt = null;
-      return { event: 'recovered', downSince: record.downSinceAt, lastHeartbeatAt: now };
+      return { event: 'recovered', downSince: record.downSinceAt, lastSeenAt, lastHeartbeatAt: now };
     }
 
     return { event: 'heartbeat', lastHeartbeatAt: now };

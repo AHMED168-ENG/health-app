@@ -37,25 +37,28 @@ test('timestamps are shown in the configured timezone', () => {
   assert.match(html, /Asia\/Riyadh/);
 });
 
-test('reminder email shows the ongoing duration in plain words', () => {
+test('reminder email shows when the service was last seen', () => {
   const { subject, html } = downtimeReminderEmail(data);
 
   assert.match(subject, /Still down/);
-  assert.match(subject, /35 minutes/);
-  assert.match(html, /35 minutes/);
+  assert.match(subject, /40 minutes/);
+  assert.match(html, /Last seen/);
+  assert.match(html, /40 minutes/);
 });
 
-test('recovery email shows total downtime in plain words', () => {
+test('recovery email shows last seen, back at and total downtime', () => {
   const { subject, html } = recoveryEmail({
     serviceId: 'rcm-api',
-    downSince: data.detectedAt,
+    lastSeenAt: data.lastHeartbeatAt,
     recoveredAt: at('2026-10-26T10:12:00Z'),
     thresholdMinutes: 5,
     timeZone: 'Asia/Riyadh',
   });
 
   assert.match(subject, /Back online/);
-  assert.match(html, /7 minutes/);
+  assert.match(html, /Last seen/);
+  assert.match(html, /Back at/);
+  assert.match(html, /12 minutes/);
 });
 
 test('duration formatter reads like a human', () => {

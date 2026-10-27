@@ -16,7 +16,7 @@ function thresholdLabel(thresholdMinutes) {
 }
 
 export function downtimeEmail({ serviceId, lastHeartbeatAt, detectedAt, thresholdMinutes, timeZone }) {
-  const silentFor = Math.max(0, detectedAt - lastHeartbeatAt);
+  const downFor = Math.max(0, detectedAt - lastHeartbeatAt);
 
   return baseLayout({
     status: 'down',
@@ -26,7 +26,7 @@ export function downtimeEmail({ serviceId, lastHeartbeatAt, detectedAt, threshol
     intro: `No heartbeat has arrived from "${serviceId}" for ${thresholdLabel(thresholdMinutes)}.`,
     rows: [
       ['Last seen', formatLocalTimestamp(lastHeartbeatAt, timeZone)],
-      ['Down for', formatDuration(silentFor)],
+      ['Down for', formatDuration(downFor)],
     ],
     details: [
       ['Last heartbeat (UTC)', formatUtcTimestamp(lastHeartbeatAt)],
@@ -38,26 +38,18 @@ export function downtimeEmail({ serviceId, lastHeartbeatAt, detectedAt, threshol
   });
 }
 
-export function downtimeReminderEmail({
-  serviceId,
-  lastHeartbeatAt,
-  detectedAt,
-  now,
-  thresholdMinutes,
-  timeZone,
-}) {
-  const downFor = Math.max(0, now - detectedAt);
-  const duration = formatDuration(downFor);
+export function downtimeReminderEmail({ serviceId, lastHeartbeatAt, now, thresholdMinutes, timeZone }) {
+  const downFor = formatDuration(Math.max(0, now - lastHeartbeatAt));
 
   return baseLayout({
     status: 'down',
     statusLabel: 'Still Down',
-    subject: `🔴 Still down: ${serviceId} (${duration})`,
+    subject: `🔴 Still down: ${serviceId} (${downFor})`,
     title: `"${serviceId}" is still down`,
-    intro: `No heartbeat has arrived for ${duration}.`,
+    intro: `No heartbeat has arrived for ${downFor}.`,
     rows: [
-      ['Down since', formatLocalTimestamp(detectedAt, timeZone)],
-      ['Down for', duration],
+      ['Last seen', formatLocalTimestamp(lastHeartbeatAt, timeZone)],
+      ['Down for', downFor],
     ],
     details: [
       ['Last heartbeat (UTC)', formatUtcTimestamp(lastHeartbeatAt)],
@@ -70,26 +62,25 @@ export function downtimeReminderEmail({
   });
 }
 
-export function recoveryEmail({ serviceId, downSince, recoveredAt, thresholdMinutes, timeZone }) {
-  const downtime = formatDuration(Math.max(0, recoveredAt - downSince));
-
-  const details = [['Recovered at (UTC)', formatUtcTimestamp(recoveredAt)]];
-  if (thresholdMinutes) {
-    details.unshift(['Alert threshold', thresholdLabel(thresholdMinutes)]);
-  }
+export function recoveryEmail({ serviceId, lastSeenAt, recoveredAt, thresholdMinutes, timeZone }) {
+  const downFor = formatDuration(Math.max(0, recoveredAt - lastSeenAt));
 
   return baseLayout({
     status: 'recovered',
     statusLabel: 'Service Recovered',
-    subject: `🟢 Back online: ${serviceId} (was down ${downtime})`,
+    subject: `🟢 Back online: ${serviceId} (was down ${downFor})`,
     title: `"${serviceId}" is back online`,
     intro: `Heartbeats from "${serviceId}" have resumed.`,
     rows: [
-      ['Down since', formatLocalTimestamp(downSince, timeZone)],
+      ['Last seen', formatLocalTimestamp(lastSeenAt, timeZone)],
       ['Back at', formatLocalTimestamp(recoveredAt, timeZone)],
-      ['Total downtime', downtime],
+      ['Down for', downFor],
     ],
-    details,
+    details: [
+      ['Last heartbeat before outage (UTC)', formatUtcTimestamp(lastSeenAt)],
+      ['Alert threshold', thresholdLabel(thresholdMinutes)],
+      ['Recovered at (UTC)', formatUtcTimestamp(recoveredAt)],
+    ],
     caption: timeZoneCaption(timeZone),
     footer: 'Generated automatically by the Heartbeat Alert Service. No action required.',
   });

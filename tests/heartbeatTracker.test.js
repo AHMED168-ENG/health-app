@@ -57,6 +57,7 @@ test('heartbeat after an outage emits a recovery event', () => {
   const result = tracker.record('rcm-api', 10 * MINUTE);
   assert.equal(result.event, 'recovered');
   assert.ok(result.downSince <= result.lastHeartbeatAt);
+  assert.equal(result.lastSeenAt, 0, 'keeps the last heartbeat before the outage');
 });
 
 test('recovered service can go down again', () => {
